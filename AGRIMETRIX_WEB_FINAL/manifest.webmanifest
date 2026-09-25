@@ -1,0 +1,16 @@
+{
+  "name": "AGRIMETRIX — Circular Greenhouse",
+  "short_name": "AGRIMETRIX",
+  "description": "Web demonstrator greenhouse sirkular untuk WATER · DATA · POWER.",
+  "lang": "id-ID",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7fdff",
+  "theme_color": "#0b8fd5",
+  "orientation": "any",
+  "icons": [
+    {"src":"assets/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}

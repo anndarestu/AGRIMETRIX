@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b8fd5" />
+  <meta name="description" content="AGRIMETRIX — demonstrator web greenhouse sirkular untuk pemulihan air, pencatatan energi, dan tata kelola komunitas." />
+  <meta name="application-name" content="AGRIMETRIX" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+  <meta name="color-scheme" content="light" />
+  <title>AGRIMETRIX — Circular Greenhouse</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="splash-screen" id="splashScreen" aria-hidden="true">
+    <div class="splash-mark splash-logo-wrap"><img src="assets/agrimetrix-logo-full.png" alt="AGRIMETRIX" class="splash-logo"></div>
+    <div class="splash-copy">
+      <small>AGRIMETRIX · DIGITAL DEMONSTRATOR</small>
+      <strong>Circular Greenhouse</strong>
+      <span>WATER · DATA · POWER</span>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-row">
+        <div class="logo-mark brand-logo-wrap"><img src="assets/agrimetrix-symbol.png" alt="" class="brand-logo" aria-hidden="true"></div>
+        <div class="brand-copy">
+          <img src="assets/agrimetrix-wordmark.png" class="brand-wordmark" alt="AGRIMETRIX" />
+          <div class="brand-sub">AGRIMETRIX · Circular Greenhouse</div>
+        </div>
+        <button class="install-btn hidden" id="installBtn" type="button" aria-label="Pasang AGRIMETRIX ke perangkat">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/></svg><span>Pasang</span>
+        </button>
+        <button class="mode-pill" id="sourceBtn" type="button" aria-haspopup="dialog" aria-controls="sourceModal">
+          <span class="dot" id="sourceDot"></span><span id="sourceLabel">DEMO</span><b>⌄</b>
+        </button>
+      </div>
+      <div class="notice" id="dataNotice"><strong>Mode simulasi.</strong> Angka di layar adalah data demonstrasi, bukan hasil pengujian greenhouse fisik.</div>
+    </header>
+
+    <main>
+      <section class="page active" data-page="home" aria-label="Beranda">
+        <article class="hero-card">
+          <div class="hero-copy">
+            <span class="kicker">HARVESTING MORE THAN WATER</span>
+            <h2>Air dipulihkan. Data dibuka. Kendali dibagi.</h2>
+            <p>Purwarupa ini memperlihatkan alur mikroklimat → keputusan → kondensasi → pencatatan air dan energi → tata kelola bersama.</p>
+            <div class="hero-chips">
+              <span><i class="chip-dot green"></i>offline-first</span>
+              <span><i class="chip-dot blue"></i>sensor-ready</span>
+              <span><i class="chip-dot amber"></i>rule-based</span>
+            </div>
+          </div>
+          <div class="hero-status" id="heroStatus">
+            <div class="status-ring" id="statusRing"><span>✓</span></div>
+            <div><small>STATUS SISTEM</small><strong id="systemState">Standby · kondisi stabil</strong><span id="lastUpdate">Sumber: simulasi</span></div>
+          </div>
+        </article>
+
+        <article class="loop-card" aria-label="Alur sistem AGRIMETRIX">
+          <div class="loop-head">
+            <div><small>ALUR SISTEM</small><h3>Dari udara lembap menuju data yang dapat diperiksa</h3></div>
+            <span class="status-tag neutral" id="loopTag">STANDBY</span>
+          </div>
+          <div class="loop-visual" id="loopVisual">
+            <div class="loop-node" data-loop="micro"><span class="node-icon">◌</span><b>Mikroklimat</b><small>Suhu + RH</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="loop-node" data-loop="decision"><span class="node-icon">◇</span><b>Keputusan</b><small>Rule-based</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="loop-node" data-loop="cooling"><span class="node-icon">❄</span><b>Kondensor</b><small>&lt; titik embun</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="loop-node" data-loop="water"><span class="node-icon">◉</span><b>Kondensat</b><small>diukur</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="loop-node" data-loop="record"><span class="node-icon">▤</span><b>Catatan</b><small>air + energi</small></div>
+          </div>
+        </article>
+
+        <article class="control-card" id="demoControls">
+          <div class="control-head">
+            <div><small>SKENARIO DEMO</small><strong>Simulasi deterministik</strong><span id="simClock">00:00 simulasi</span></div>
+            <span class="scale-badge">1 detik = 2 menit simulasi</span>
+          </div>
+          <div class="control-actions">
+            <button class="btn primary" id="startBtn" type="button">▶ Mulai</button>
+            <button class="btn" id="pauseBtn" type="button">Ⅱ Jeda</button>
+            <button class="btn warning" id="failsafeBtn" type="button">⚠ Uji fail-safe</button>
+            <button class="btn ghost" id="resetBtn" type="button">↻ Reset</button>
+          </div>
+        </article>
+
+        <article class="control-card sensor-control hidden" id="sensorControls">
+          <div class="control-head">
+            <div><small>SUMBER SENSOR</small><strong id="sensorEndpointShort">ESP32 belum terhubung</strong><span id="sensorPollInfo">Polling berhenti</span></div>
+            <span class="scale-badge" id="sensorFreshness">BELUM ADA DATA</span>
+          </div>
+          <div class="control-actions">
+            <button class="btn primary" id="refreshSensorBtn" type="button">↻ Ambil data</button>
+            <button class="btn" id="openConnectionBtn" type="button">⚙ Koneksi</button>
+          </div>
+        </article>
+
+        <div class="metrics-grid">
+          <article class="metric orange"><span class="metric-icon metric-icon-orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4.5 4.5 0 1 1-4 0Z"/><path d="M12 8v8"/></svg></span><small>Suhu udara</small><strong><span id="tempVal">26.5</span><em>°C</em></strong><span id="tempTrend">stabil</span></article>
+          <article class="metric blue"><span class="metric-icon metric-icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11Z"/><path d="M9.5 15.5c.8 1 1.7 1.5 3 1.5"/></svg></span><small>Kelembapan RH</small><strong><span id="rhVal">72.0</span><em>%</em></strong><span id="rhTrend">naik perlahan</span></article>
+          <article class="metric green"><span class="metric-icon metric-icon-green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 4C12 4 6 7.8 6 14c0 2.6 1.8 5 4.5 5 6.3 0 9.5-7.1 9.5-15Z"/><path d="M4 21c2.5-5 6.5-8.5 12-11"/></svg></span><small>VPD</small><strong><span id="vpdVal">0.96</span><em>kPa</em></strong><span>indikator mikroklimat</span></article>
+          <article class="metric purple"><span class="metric-icon metric-icon-purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2v20M4.2 6.5l15.6 11M19.8 6.5l-15.6 11M9 4l3 3 3-3M9 20l3-3 3 3M4 10l4 1-1 4M20 10l-4 1 1 4"/></svg></span><small>Suhu kondensor</small><strong><span id="surfaceVal">25.0</span><em>°C</em></strong><span id="dewInfo">di atas titik embun</span></article>
+        </div>
+
+        <article class="panel chart-panel">
+          <div class="panel-title-row"><div><small>MIKROKLIMAT</small><h3>Jejak data terbaru</h3></div><div class="legend"><span><i class="temp-line"></i>Suhu</span><span><i class="rh-line"></i>RH</span></div></div>
+          <canvas id="microChart" width="720" height="260" aria-label="Grafik suhu dan kelembapan"></canvas>
+        </article>
+
+        <article class="decision-card" id="decisionCard">
+          <div class="decision-icon">◎</div>
+          <div class="decision-copy"><small id="decisionEyebrow">KENDALI TAHAP PERTAMA · RULE-BASED</small><h3 id="decisionTitle">Memantau mikroklimat</h3><p id="decisionText">Peltier menunggu. Sistem bekerja ketika kondisi pemicu dan keselamatan terpenuhi.</p></div>
+          <div class="switch-wrap"><small>PELTIER</small><div class="switch" id="peltierSwitch"><span></span></div><strong id="peltierText">OFF</strong></div>
+        </article>
+
+        <div class="two-col">
+          <article class="panel compact">
+            <div class="panel-title-row"><div><small>CONDENSATION WINDOW</small><h3>Peluang kondensasi</h3></div><span class="status-tag neutral" id="condTag">BELUM AKTIF</span></div>
+            <div class="mini-row"><span>Titik embun</span><strong><span id="dewPointVal">21.2</span> °C</strong></div>
+            <div class="mini-row"><span>Permukaan kondensor</span><strong><span id="surfaceVal2">25.0</span> °C</strong></div>
+            <div class="mini-row"><span>Selisih</span><strong id="dewDelta">+3.8 °C</strong></div>
+          </article>
+          <article class="panel compact ai-card">
+            <div class="panel-title-row"><div><small>MODEL AI</small><h3>ANFIS</h3></div><span class="status-tag planned">TAHAP LANJUT</span></div>
+            <p class="soft-text">Belum dinyatakan aktif. ANFIS baru dipertimbangkan setelah tersedia data sensor nyata untuk pelatihan, validasi, dan pembandingan dengan kendali sederhana.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-page="water" aria-label="Air dan energi">
+        <div class="page-heading"><span class="kicker">WATER + ENERGY</span><h2>Air yang dipulihkan dibaca bersama energi, mutu, dan keselamatan.</h2><p id="waterPageCaption">Semua angka di halaman ini mengikuti skenario simulasi.</p></div>
+        <article class="water-hero">
+          <div class="water-orbit" aria-hidden="true"><span><svg viewBox="0 0 24 24"><path d="M12 3s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11Z"/></svg></span><i></i></div>
+          <div><small>AIR TERKONDENSASI</small><strong><span id="waterMl">0</span> <em>mL</em></strong><span id="waterRate">belum ada kondensasi</span></div>
+          <div class="water-side"><small>DIPAKAI ULANG</small><strong><span id="reuseMl">0</span> mL</strong><span>setelah pemeriksaan</span></div>
+        </article>
+        <div class="metrics-grid energy-grid">
+          <article class="metric orange"><small>Energi Peltier</small><strong><span id="energyPeltier">0.000</span><em>kWh</em></strong><span id="energyPeltierNote">simulasi 60 W saat aktif</span></article>
+          <article class="metric purple"><small>Kipas + kendali</small><strong><span id="energyOther">0.000</span><em>kWh</em></strong><span id="energyOtherNote">simulasi 8 W</span></article>
+          <article class="metric green"><small>Rasio penggunaan ulang</small><strong><span id="literPerKwh">—</span><em>L/kWh</em></strong><span>bukan klaim performa</span></article>
+          <article class="metric blue"><small>Tandon</small><strong><span id="tankValMetric">12</span><em>%</em></strong><span>indikator kapasitas</span></article>
+        </div>
+        <article class="panel">
+          <div class="panel-title-row"><div><small>SYSTEM HEALTH</small><h3>Keselamatan dan kesiapan</h3></div><span class="status-tag good" id="healthTag">NORMAL</span></div>
+          <div class="health-grid">
+            <div class="health-item"><span>Sensor suhu/RH</span><strong id="sensorStatus">✓ Normal</strong><small id="sensorStatusNote">status simulasi</small></div>
+            <div class="health-item"><span>Kalibrasi</span><strong>Perlu verifikasi fisik</strong><small>catatan kalibrasi belum diisi</small></div>
+            <div class="health-item"><span>Sisi panas Peltier</span><strong><span id="hotSideVal">34.0</span> °C</strong><small>batas demo 60 °C</small></div>
+            <div class="health-item"><span>Tandon</span><strong><span id="tankVal">12</span>%</strong><small>kapasitas tersedia</small></div>
+            <div class="health-item"><span>Fail-safe</span><strong id="failSafeState">✓ Siap</strong><small>overheat / sensor / tandon</small></div>
+            <div class="health-item"><span>Mutu kondensat</span><strong id="waterQualityState">Belum diperiksa</strong><small>tidak otomatis layak irigasi</small></div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-title-row"><div><small>NERACA AIR</small><h3>Yang dicatat terpisah</h3></div></div>
+          <div class="bar-item"><div><span>Kondensat terbentuk</span><strong id="barCond">0 mL</strong></div><div class="bar"><i id="barCondFill"></i></div></div>
+          <div class="bar-item"><div><span>Benar-benar digunakan ulang</span><strong id="barReuse">0 mL</strong></div><div class="bar"><i id="barReuseFill"></i></div></div>
+          <div class="bar-item"><div><span>Isi tandon</span><strong id="barTank">12%</strong></div><div class="bar"><i id="barTankFill"></i></div></div>
+        </article>
+      </section>
+
+      <section class="page" data-page="community" aria-label="Komunitas">
+        <div class="page-heading"><span class="kicker">POWER</span><h2>Teknologi bersama membutuhkan akses, pembelajaran, suara, dan manfaat yang dapat ditinjau.</h2><p>Halaman ini adalah mockup tata kelola komunitas, bukan data kelompok tani nyata.</p></div>
+        <article class="panel governance-hero">
+          <div class="governance-copy"><small>SHARED CONTROL</small><h3>Data tidak berhenti di layar.</h3><p>Informasi operasi menjadi dasar untuk belajar, bergiliran menjadi operator, memeriksa biaya, dan mengambil keputusan bersama.</p></div>
+          <div class="governance-flow"><span>AKSES</span><i>→</i><span>BELAJAR</span><i>→</i><span>SUARA</span><i>→</i><span>MANFAAT</span></div>
+        </article>
+        <article class="panel">
+          <div class="panel-title-row"><div><small>HAK PENGELOLAAN</small><h3>Empat hak dalam unit bersama</h3></div></div>
+          <div class="rights-grid">
+            <div class="right-card"><span>01</span><strong>Akses</strong><p>Perangkat dan data dapat digunakan anggota sesuai kesepakatan.</p></div>
+            <div class="right-card"><span>02</span><strong>Belajar</strong><p>Pelatihan dan rotasi mencegah pengetahuan terkunci pada satu operator.</p></div>
+            <div class="right-card"><span>03</span><strong>Bersuara</strong><p>Aturan, anggaran, penggunaan unit, dan perubahan prosedur ditinjau bersama.</p></div>
+            <div class="right-card"><span>04</span><strong>Manfaat</strong><p>Biaya, kerja, perawatan, dan penggunaan hasil dicatat sebelum pembagian.</p></div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-title-row"><div><small>ROTASI OPERATOR · CONTOH UI</small><h3>Jadwal demonstrasi</h3></div><span class="status-tag neutral">DATA CONTOH</span></div>
+          <div class="operator-list">
+            <div class="operator active-op"><span class="avatar">A</span><div><strong>Operator Demo A</strong><small>Sesi hari ini · 08.00–12.00</small></div><span class="op-badge">AKTIF</span></div>
+            <div class="operator"><span class="avatar">B</span><div><strong>Operator Demo B</strong><small>Rotasi berikutnya · pelatihan selesai</small></div><span class="op-badge soft">SIAP</span></div>
+            <div class="operator"><span class="avatar">C</span><div><strong>Operator Demo C</strong><small>Pendamping pencatatan · tahap latihan</small></div><span class="op-badge soft">LATIHAN</span></div>
+          </div>
+        </article>
+        <article class="panel team-panel">
+          <div class="panel-title-row"><div><small>TIM PENGEMBANG</small><h3>AGRIMETRIX</h3></div></div>
+          <div class="team-grid">
+            <div class="team-member">
+              <div class="avatar photo-avatar photo-ananda">
+                <img src="assets/team/ananda-restu.jpg" alt="Avatar Ananda Restu Sarivatunisa" loading="lazy">
+              </div>
+              <div><strong>Ananda Restu Sarivatunisa</strong><small>Tim pengembang AGRIMETRIX</small></div>
+            </div>
+            <div class="team-member">
+              <div class="avatar photo-avatar photo-puthut">
+                <img src="assets/team/puthut-bagus.jpg" alt="Avatar Puthut Bagus Ferdyansyah" loading="lazy">
+              </div>
+              <div><strong>Puthut Bagus Ferdyansyah</strong><small>Tim pengembang AGRIMETRIX</small></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="page" data-page="logs" aria-label="Catatan">
+        <div class="page-heading"><span class="kicker">DATA</span><h2>Riwayat operasi yang dapat dibaca kembali.</h2><p>Log dan snapshot telemetri disimpan lokal pada perangkat; ekspor CSV tidak membutuhkan internet.</p></div>
+        <article class="panel">
+          <div class="log-toolbar">
+            <div><small>CATATAN OPERASI</small><h3>Event terbaru</h3></div>
+            <div class="toolbar-actions"><button class="btn" id="clearLogsBtn" type="button">Bersihkan</button><button class="btn primary small" id="exportBtn" type="button">⇩ Ekspor CSV</button></div>
+          </div>
+          <div class="log-list" id="logList"></div>
+        </article>
+        <article class="panel">
+          <div class="panel-title-row"><div><small>TRANSPARANSI DATA</small><h3>Apa yang belum dibuktikan?</h3></div></div>
+          <div class="not-proven">
+            <span>Belum ada hasil lapangan untuk persentase penghematan air.</span>
+            <span>Belum ada hasil konsumsi energi per liter pada perangkat fisik.</span>
+            <span>Belum ada hasil kalibrasi sensor dan mutu kondensat yang tervalidasi.</span>
+            <span>Belum ada model ANFIS terlatih dan tervalidasi.</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="page" data-page="guide" aria-label="Panduan">
+        <div class="page-heading"><span class="kicker">PANDUAN DEMO</span><h2>Dari purwarupa digital menuju uji perangkat yang dapat dipertanggungjawabkan.</h2><p>Aplikasi diposisikan sebagai demonstrator alur interaksi dan sebagai antarmuka yang siap menerima data ESP32.</p></div>
+        <article class="panel">
+          <div class="steps">
+            <div class="step"><span>1</span><div><strong>Pilih sumber data</strong><p>Gunakan Demo untuk presentasi tanpa alat fisik atau Sensor untuk membaca endpoint ESP32 lokal.</p></div></div>
+            <div class="step"><span>2</span><div><strong>Pantau mikroklimat</strong><p>Suhu dan RH menghasilkan VPD serta titik embun sebagai informasi operasi.</p></div></div>
+            <div class="step"><span>3</span><div><strong>Kendalikan dengan aturan yang dapat dijelaskan</strong><p>Pada tahap awal, kendali berada di ESP32/rule-based dengan fail-safe; aplikasi memvisualisasikan statusnya.</p></div></div>
+            <div class="step"><span>4</span><div><strong>Ukur air dan energi bersama</strong><p>Kondensat, penggunaan ulang, dan kWh dicatat terpisah. Banyaknya air tidak dibaca tanpa kebutuhan energi.</p></div></div>
+            <div class="step"><span>5</span><div><strong>Periksa sebelum penggunaan ulang</strong><p>Kondensat tidak otomatis dinyatakan aman. Mutu air perlu diuji sesuai komoditas dan risiko.</p></div></div>
+            <div class="step"><span>6</span><div><strong>Alihkan pengetahuan ke kelompok</strong><p>Akses, pelatihan, rotasi, keputusan, kerja, dan manfaat menjadi bagian dari rancangan.</p></div></div>
+          </div>
+        </article>
+        <article class="panel accent-panel">
+          <small>STATUS PURWARUPA</small>
+          <h3>Yang sudah dapat didemonstrasikan</h3>
+          <p>Web app responsif dan offline-capable, animasi alur WATER–DATA–POWER, simulasi mikroklimat, rule-based demo, pembacaan endpoint ESP32, pencatatan air/energi bila datanya tersedia, fail-safe demonstratif, log lokal, mockup tata kelola, dan ekspor CSV.</p>
+          <h3>Yang masih menjadi tahap pengujian</h3>
+          <p>Sensor fisik terkalibrasi, unit kondensasi nyata, meter energi terpasang, pemeriksaan mutu air, uji budidaya pembanding, pilot komunitas, dan ANFIS terlatih.</p>
+        </article>
+        <article class="panel about-card">
+          <div class="about-logo"><img src="assets/agrimetrix-symbol.png" alt="" aria-hidden="true"></div>
+          <div><small>AGRIMETRIX</small><h3>Harvesting More Than Water</h3><p>Web demonstrator offline-first untuk memperlihatkan konsep WATER–DATA–POWER dan menerima data ESP32 ketika jaringan mendukung.</p><strong class="team-line">Ananda Restu Sarivatunisa · Puthut Bagus Ferdyansyah</strong></div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <button class="nav-btn active" data-target="home" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9Z"/></svg></span><small>Beranda</small></button>
+      <button class="nav-btn" data-target="water" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s5 5.5 5 9.5a5 5 0 0 1-10 0C7 8.5 12 3 12 3Z"/><path d="m13 11-2 4h2l-1 3 4-5h-2l1-2"/></svg></span><small>Air & Energi</small></button>
+      <button class="nav-btn" data-target="community" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><small>Komunitas</small></button>
+      <button class="nav-btn" data-target="logs" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><small>Catatan</small></button>
+      <button class="nav-btn" data-target="guide" type="button"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13Z"/><path d="M8 7h8M8 11h6"/></svg></span><small>Panduan</small></button>
+    </nav>
+    <footer class="web-footer"><span>AGRIMETRIX Web · <b id="appVersion">v1.0</b></span><span id="networkState">Memeriksa jaringan…</span></footer>
+  </div>
+
+  <div class="modal-backdrop hidden" id="sourceModal" role="dialog" aria-modal="true" aria-labelledby="sourceModalTitle">
+    <div class="modal-sheet" role="document">
+      <div class="modal-handle" aria-hidden="true"></div>
+      <div class="modal-head"><div><small>SUMBER DATA</small><h2 id="sourceModalTitle">Pilih mode AGRIMETRIX</h2></div><button class="icon-btn" id="closeModalBtn" type="button" aria-label="Tutup">×</button></div>
+      <div class="source-options" role="radiogroup" aria-label="Mode sumber data">
+        <button class="source-option active" id="demoModeOption" type="button" data-mode="demo"><span class="source-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg></span><div><strong>Demo Simulation</strong><small>Untuk presentasi tanpa perangkat fisik.</small></div><i>✓</i></button>
+        <button class="source-option" id="sensorModeOption" type="button" data-mode="sensor"><span class="source-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 14 0M8 12a4 4 0 0 1 8 0M12 12v7"/><circle cx="12" cy="20" r="1"/></svg></span><div><strong>ESP32 Sensor</strong><small>Membaca JSON dari jaringan lokal.</small></div><i></i></button>
+      </div>
+      <div class="connection-form" id="connectionForm">
+        <div id="sensorConnectionFields">
+          <label for="endpointInput">Endpoint ESP32</label>
+          <input id="endpointInput" type="url" inputmode="url" value="http://192.168.4.1/api/status" autocomplete="off" spellcheck="false" />
+          <div class="connection-presets"><button type="button" data-endpoint="http://192.168.4.1/api/status">AP bawaan</button><button type="button" data-endpoint="http://192.168.1.50/api/status">Wi-Fi lokal</button><button type="button" data-endpoint="/api/status">Same-origin</button></div>
+          <div class="connection-status" id="connectionStatus"><span class="conn-dot idle"></span><div><strong>Belum diuji</strong><small>Hubungkan perangkat ke Wi-Fi ESP32 atau jaringan yang sama. Web HTTPS tidak dapat membaca endpoint HTTP karena proteksi browser.</small></div></div>
+          <details class="json-details"><summary>Format JSON yang didukung</summary><pre>{
+  "temperature": 26.7,
+  "humidity": 78.4,
+  "surfaceTemp": 19.2,
+  "hotSideTemp": 41.5,
+  "tankPercent": 24,
+  "condensateMl": 42,
+  "reusedMl": 20,
+  "energyPeltierWh": 12.4,
+  "energyOtherWh": 2.1,
+  "peltierOn": true,
+  "sensorOk": true,
+  "overheat": false
+}</pre></details>
+        </div>
+        <div class="modal-actions"><button class="btn" id="testConnectionBtn" type="button">Uji koneksi</button><button class="btn primary" id="applySourceBtn" type="button">Gunakan mode ini</button></div>
+      </div>
+      <p class="modal-note"><strong>Catatan:</strong> mode Sensor tidak mengubah data yang hilang menjadi angka simulasi. Jika ESP32 tidak mengirim suatu parameter, aplikasi menampilkannya sebagai “—”.</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
